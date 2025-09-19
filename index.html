@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tarief → Maximaal salaris</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; max-width:720px; margin:40px auto; padding:0 16px; color:#111; }
+    h1 { font-size:1.25rem; margin-bottom:8px; }
+    .card { border:1px solid #e6e6e6; border-radius:8px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,0.03); }
+    label { display:block; margin-top:12px; font-size:0.95rem; color:#333; }
+    input[type="number"] { width:100%; padding:8px 10px; margin-top:6px; border:1px solid #dcdcdc; border-radius:6px; font-size:1rem; box-sizing:border-box; }
+    .formula { margin-top:8px; font-size:0.95rem; color:#444; background:#fafafa; padding:8px; border-radius:6px; border:1px solid #f0f0f0; }
+    .controls { display:flex; gap:8px; margin-top:12px; }
+    button { padding:8px 12px; border-radius:6px; border:1px solid #007bff; background:#007bff; color:#fff; cursor:pointer; font-size:0.95rem; }
+    button.secondary { background:#f3f4f6; color:#111; border-color:#d0d5dd; }
+    .result { margin-top:14px; padding:12px; background:#fff; border-radius:6px; border:1px solid #e6e6e6; font-size:1.05rem; min-height:44px; display:flex; align-items:center; }
+    .small { font-size:0.85rem; color:#666; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <h1>Tarief → Maximaal salaris</h1>
+
+  <div class="card">
+    <label for="rate">Uurtarief (EUR)</label>
+    <input id="rate" type="number" placeholder="bijv. 60" min="0" step="0.01" inputmode="decimal" />
+
+    <div class="formula" aria-hidden="false">
+      Formule: (tarief ÷ 2,6) × 156
+    </div>
+
+    <div class="controls">
+      <button id="calcBtn" type="button">Bereken</button>
+      <button id="copyBtn" class="secondary" type="button">Kopieer resultaat</button>
+    </div>
+
+    <div class="result" id="result" aria-live="polite">
+      Voer een uurtarief in en klik op "Bereken" om het resultaat te zien.
+    </div>
+
+    <div class="small">Voorbeeld: bij tarief 60 → (60 ÷ 2,6) × 156 = 3.600,00 EUR</div>
+  </div>
+
+  <script>
+    const rateEl = document.getElementById('rate');
+    const calcBtn = document.getElementById('calcBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const resultEl = document.getElementById('result');
+
+    function formatEUR(value) {
+      return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value);
+    }
+
+    function calculateFromInput() {
+      const rate = parseFloat(rateEl.value);
+      if (!isFinite(rate) || rate <= 0) {
+        resultEl.innerHTML = '<strong style="color:#b00">Voer een geldig tarief groter dan 0 in.</strong>';
+        return;
+      }
+      const resultaat = (rate / 2.6) * 156;
+      resultEl.innerHTML = `<div><strong>Resultaat:</strong> ${formatEUR(resultaat)}</div>
+                            <div style="margin-top:6px; font-size:0.9rem; color:#555">Berekening: (${rate.toFixed(2)} ÷ 2,6) × 156 = ${resultaat.toFixed(2)}</div>`;
+    }
+
+    calcBtn.addEventListener('click', calculateFromInput);
+    rateEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); calculateFromInput(); } });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = resultEl.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'Gekopieerd!';
+        setTimeout(() => copyBtn.textContent = orig, 1400);
+      } catch (err) {
+        alert('Kopiëren mislukt — selecteer en kopieer handmatig.');
+      }
+    });
+
+    rateEl.focus();
+  </script>
+</body>
+</html>
